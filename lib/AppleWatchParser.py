@@ -4,24 +4,53 @@ Author: Zac DeMeo
 
 """
 
+
 class AppleWatchParser:
 
 	def __init__(self, xml_path, categories):
 		"""
 		Read in and parse raw Apple Watch XML data
 		:param xml_path: Path to Apple Watch XMl file
+		:param categories:
 		"""
 		import xml.etree.ElementTree as ET
 
 		self.categories = categories
 		self.raw_data = ET.parse(xml_path)
 
-		# Get data labels. Exploratory.
+		# Print data labels
 		data_labels = self.__get_labels()
+		print('Available health categories:')
+		print(data_labels)
 
 		self.parsed_data = self.__parse()
 
-		print('hi')
+	@staticmethod
+	def __parse_node(d, node):
+		"""
+		Helper function for parsing child node attribute data
+		:param d: Dictionary that stores current parsed XML data
+		:param node: Child node from XML object
+		:return: Dictionary with updated values
+		"""
+		from dateutil import parser
+
+		if d.get(node.attrib['type']) is None:
+			d[node.attrib['type']] = []
+
+		# Time asleep needs extra calculations
+		if node.attrib.get('type') == 'HKCategoryTypeIdentifierSleepAnalysis':
+			start = parser.parse(node.attrib['startDate'])
+			end = parser.parse(node.attrib['endDate'])
+			diff = (end - start).total_seconds() / 3600.0  # Hours of sleep
+			node.attrib['value'] = diff
+			node.attrib['unit'] = 'Hours'
+
+		d[node.attrib['type']].append([parser.parse(node.attrib['creationDate']),
+		                               float(node.attrib['value']),
+		                               node.attrib['unit']])
+
+		return d
 
 	def __parse(self):
 		"""
@@ -30,10 +59,9 @@ class AppleWatchParser:
 		:return: Dictionary of
 		"""
 
-		from dateutil import parser
-
 		temp = {}
 
+		# Iterate through all child nodes of the XML root node
 		for child in self.raw_data.getroot():
 
 			# First few entries don't have 'type' attributes and are useless for this data. Skip them.
@@ -41,15 +69,8 @@ class AppleWatchParser:
 			if child.attrib.get('type') is None or child.attrib.get('type') not in self.categories:
 				continue
 
-			try:
-				temp[child.attrib['type']].append([parser.parse(child.attrib['creationDate']),
-				                                   float(child.attrib['value']),
-				                                   child.attrib['unit']])
-			except KeyError:
-				temp[child.attrib['type']] = []
-				temp[child.attrib['type']].append([parser.parse(child.attrib['creationDate']),
-				                                   float(child.attrib['value']),
-				                                   child.attrib['unit']])
+			# Parse child node data
+			temp = self.__parse_node(temp, child)
 
 		return temp
 
@@ -88,6 +109,6 @@ class AppleWatchParser:
 					line = '{},{},{}\n'.format(str(entry[0]), str(entry[1]), str(entry[2]))
 					f.write(line)
 
-
+	# TODO: Parse directly to DataFrame
 	def to_dataframe(self):
 		pass
