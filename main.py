@@ -2,11 +2,15 @@ from lib.AppleWatchParser import AppleWatchParser
 
 
 def main():
+
 	# Path to Apple Watch XML file
 	watch_xml = 'export.xml'
+
+	# Directory where .CSVs are dumped out to
 	csv_directory = '.'
 
 	# Data categories to parse. Will ignore any categories not defined here.
+	# NOTE: No other categories have been tested other than the ones below.
 	categories_to_parse = ['HKQuantityTypeIdentifierBodyMass', 'HKQuantityTypeIdentifierOxygenSaturation',
 						   'HKQuantityTypeIdentifierStepCount',
 						   'HKQuantityTypeIdentifierDistanceWalkingRunning',

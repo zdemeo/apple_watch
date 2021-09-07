@@ -1,7 +1,6 @@
 """
-A simple class for parsing Apple Watch XML data.
+A class for parsing Apple Watch XML data.
 Author: Zac DeMeo
-
 """
 
 
@@ -11,7 +10,7 @@ class AppleWatchParser:
 		"""
 		Read in and parse raw Apple Watch XML data
 		:param xml_path: Path to Apple Watch XMl file
-		:param categories:
+		:param categories: List of categories to parse.
 		"""
 		import xml.etree.ElementTree as ET
 
@@ -22,6 +21,9 @@ class AppleWatchParser:
 		data_labels = self.__get_labels()
 		print('Available health categories:')
 		print(data_labels)
+
+		#if self.categories is None:
+		#	self.categories = data_labels
 
 		self.parsed_data = self.__parse()
 
@@ -109,6 +111,8 @@ class AppleWatchParser:
 					line = '{},{},{}\n'.format(str(entry[0]), str(entry[1]), str(entry[2]))
 					f.write(line)
 
-	# TODO: Parse directly to DataFrame
+	# TODO: Parse directly to DataFrame.
 	def to_dataframe(self):
 		pass
+
+
